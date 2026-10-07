@@ -44,6 +44,7 @@ model Profile {
   location    String?
   avatarUrl   String?
   isPublished Boolean   @default(true)
+  showLinks   Boolean   @default(true)
   qrScans     Int       @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
