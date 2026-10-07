@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SocialPlatform {
+  instagram
+  github
+  linkedin
+  whatsapp
+  email
+  x
+  youtube
+  telegram
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String?
+  role         Role      @default(USER)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  profile      Profile?
+}
+
+model Profile {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  username    String    @unique
+  name        String
+  title       String?
+  bio         String?
+  location    String?
+  avatarUrl   String?
+  isPublished Boolean   @default(true)
+  qrScans     Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  links       Link[]
+  socials     Social[]
+}
+
+model Link {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  title     String
+  subtitle  String?
+  url       String
+  icon      String?
+  featured  Boolean  @default(false)
+  order     Int      @default(0)
+  clicks    Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Social {
+  id        String         @id @default(cuid())
+  profileId String
+  profile   Profile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  platform  SocialPlatform
+  url       String
+  order     Int            @default(0)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
