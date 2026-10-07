@@ -139,6 +139,7 @@ export default async function PublicProfilePage({
           bio: profile.bio,
           location: profile.location,
           avatarUrl: profile.avatarUrl,
+          showLinks: profile.showLinks,
         }}
         links={profile.links}
         socials={profile.socials}

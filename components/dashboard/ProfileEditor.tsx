@@ -30,6 +30,7 @@ interface ProfileEditorProps {
     location?: string | null;
     username: string;
     avatarUrl?: string | null;
+    showLinks?: boolean;
   };
   onProfileUpdated: (updated: ProfileInput) => void;
 }
@@ -67,6 +68,7 @@ export function ProfileEditor({
       location: initialProfile.location || "",
       username: initialProfile.username,
       avatarUrl: initialProfile.avatarUrl || null,
+      showLinks: initialProfile.showLinks !== false,
     },
   });
 
@@ -331,6 +333,44 @@ export function ProfileEditor({
               </span>
             </div>
           )}
+        </div>
+
+        {/* Page Display Layout Option: Show/Hide Link Cards */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-white">
+                Social Profile Card Only Mode
+              </p>
+              <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed">
+                When enabled, your public page displays ONLY your photo, full name, description bio, and social media icons (hiding all job links, works, and cards).
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer shrink-0">
+              <input
+                type="checkbox"
+                checked={!watch("showLinks")}
+                onChange={(e) => {
+                  const newShowLinks = !e.target.checked;
+                  setValue("showLinks", newShowLinks, { shouldDirty: true });
+                  onProfileUpdated({
+                    name: watch("name"),
+                    title: watch("title"),
+                    bio: watch("bio"),
+                    location: watch("location"),
+                    username: watch("username"),
+                    avatarUrl,
+                    showLinks: newShowLinks,
+                  });
+                }}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+            </label>
+          </div>
+          <div className="text-[11px] text-sky-400 font-medium pt-1">
+            Current layout: {!watch("showLinks") ? "Social Card Mode (Picture, name, bio & social media only)" : "Standard Mode (Full profile with links & works)"}
+          </div>
         </div>
 
         {/* Save Button */}

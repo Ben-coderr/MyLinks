@@ -48,7 +48,7 @@ export async function updateProfile(data: ProfileInput, targetUserId?: string) {
       return { error: parsed.error.issues[0]?.message || "Invalid profile data" };
     }
 
-    const { name, title, bio, location, username, avatarUrl } = parsed.data;
+    const { name, title, bio, location, username, avatarUrl, showLinks } = parsed.data;
     const lowerUsername = username.toLowerCase().trim();
 
     // If username is changing, check availability
@@ -77,6 +77,7 @@ export async function updateProfile(data: ProfileInput, targetUserId?: string) {
         location: location || null,
         username: lowerUsername,
         avatarUrl: avatarUrl !== undefined ? avatarUrl : profile.avatarUrl,
+        showLinks: showLinks !== undefined ? showLinks : (profile.showLinks ?? true),
       },
     });
 
