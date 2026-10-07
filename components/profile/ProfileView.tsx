@@ -41,6 +41,7 @@ export interface ProfileViewProps {
     bio?: string | null;
     location?: string | null;
     avatarUrl?: string | null;
+    showLinks?: boolean;
   };
   links: ProfileViewLink[];
   socials: ProfileViewSocial[];
@@ -124,64 +125,68 @@ export function ProfileView({
         </div>
       )}
 
-      {/* Links List */}
-      <div className="w-full space-y-3.5 mt-2 flex-1">
-        {visibleLinks.length === 0 ? (
-          <div className="text-center py-10 px-4 rounded-2xl bg-[#141414]/50 border border-white/5">
-            <Link2 className="w-8 h-8 text-neutral-600 mx-auto mb-2" />
-            <p className="text-sm text-neutral-400">No links added yet.</p>
-          </div>
-        ) : (
-          visibleLinks.map((link) => {
-            const href = isPreview
-              ? link.url
-              : `/api/click/${link.id}`;
+      {/* Links List - Omitted when showLinks is false (Social Card Mode) */}
+      {profile.showLinks !== false ? (
+        <div className="w-full space-y-3.5 mt-2 flex-1">
+          {visibleLinks.length === 0 ? (
+            <div className="text-center py-10 px-4 rounded-2xl bg-[#141414]/50 border border-white/5">
+              <Link2 className="w-8 h-8 text-neutral-600 mx-auto mb-2" />
+              <p className="text-sm text-neutral-400">No links added yet.</p>
+            </div>
+          ) : (
+            visibleLinks.map((link) => {
+              const href = isPreview
+                ? link.url
+                : `/api/click/${link.id}`;
 
-            return (
-              <a
-                key={link.id}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  "card-hover group relative block w-full rounded-2xl p-4 text-left border transition-all duration-200 select-none",
-                  link.featured
-                    ? "bg-[#181818] border-sky-400/40 shadow-[0_0_20px_rgba(56,189,248,0.08)] ring-1 ring-sky-400/20"
-                    : "bg-[#141414] border-white/10 hover:border-white/25"
-                )}
-              >
-                {link.featured && (
-                  <span className="absolute -top-2.5 right-4 inline-flex items-center gap-1 rounded-full bg-sky-500/20 border border-sky-400/30 px-2 py-0.5 text-[10px] font-semibold text-sky-300 backdrop-blur-sm">
-                    <Sparkles className="w-2.5 h-2.5 text-sky-400" />
-                    Featured
-                  </span>
-                )}
+              return (
+                <a
+                  key={link.id}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    "card-hover group relative block w-full rounded-2xl p-4 text-left border transition-all duration-200 select-none",
+                    link.featured
+                      ? "bg-[#181818] border-sky-400/40 shadow-[0_0_20px_rgba(56,189,248,0.08)] ring-1 ring-sky-400/20"
+                      : "bg-[#141414] border-white/10 hover:border-white/25"
+                  )}
+                >
+                  {link.featured && (
+                    <span className="absolute -top-2.5 right-4 inline-flex items-center gap-1 rounded-full bg-sky-500/20 border border-sky-400/30 px-2 py-0.5 text-[10px] font-semibold text-sky-300 backdrop-blur-sm">
+                      <Sparkles className="w-2.5 h-2.5 text-sky-400" />
+                      Featured
+                    </span>
+                  )}
 
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-2">
-                    <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-neutral-300 group-hover:text-sky-300 group-hover:border-sky-400/30 transition-colors shrink-0">
-                      <LinkIcon name={link.icon} className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-white text-[15px] leading-snug group-hover:text-sky-300 transition-colors truncate">
-                        {link.title}
-                      </p>
-                      {link.subtitle && (
-                        <p className="text-xs text-neutral-400 mt-0.5 leading-normal line-clamp-2">
-                          {link.subtitle}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-2">
+                      <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-neutral-300 group-hover:text-sky-300 group-hover:border-sky-400/30 transition-colors shrink-0">
+                        <LinkIcon name={link.icon} className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-white text-[15px] leading-snug group-hover:text-sky-300 transition-colors truncate">
+                          {link.title}
                         </p>
-                      )}
+                        {link.subtitle && (
+                          <p className="text-xs text-neutral-400 mt-0.5 leading-normal line-clamp-2">
+                            {link.subtitle}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-neutral-500 group-hover:text-white transition-colors">
+                      <ExternalLink className="link-arrow w-4 h-4" />
                     </div>
                   </div>
-                  <div className="shrink-0 text-neutral-500 group-hover:text-white transition-colors">
-                    <ExternalLink className="link-arrow w-4 h-4" />
-                  </div>
-                </div>
-              </a>
-            );
-          })
-        )}
-      </div>
+                </a>
+              );
+            })
+          )}
+        </div>
+      ) : (
+        <div className="w-full flex-1" />
+      )}
 
       {/* Footer */}
       <footer className="w-full mt-12 pt-6 border-t border-white/5 text-center space-y-2">
