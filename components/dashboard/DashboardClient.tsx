@@ -130,6 +130,7 @@ export function DashboardClient({
             <LinksEditor
               initialLinks={links}
               onLinksChanged={(updated) => setLinks(updated)}
+              showLinks={profile.showLinks}
             />
           )}
 
