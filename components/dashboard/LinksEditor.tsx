@@ -465,6 +465,22 @@ export function LinksEditor({
         </Button>
       </div>
 
+      {/* Social Card Only Notice Banner */}
+      {showLinks === false && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3 text-amber-300 text-xs">
+          <Info className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+          <div className="space-y-1">
+            <p className="font-semibold text-amber-200">
+              Page View Mode: Social Card Only
+            </p>
+            <p className="text-amber-300/80 leading-relaxed">
+              Your public page is currently configured to show ONLY your picture, full name, description bio, and social media links.
+              The link cards below are safely saved, but hidden from visitors on your public page view. You can switch back to Standard Layout anytime in the <strong>Profile</strong> tab.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Sortable Links List */}
       {links.length === 0 ? (
         <div className="text-center py-12 px-4 rounded-2xl bg-white/[0.02] border border-dashed border-white/10">
