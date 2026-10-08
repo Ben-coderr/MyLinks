@@ -11,6 +11,8 @@ import {
   Link2,
   Globe,
   Lock,
+  UserCheck,
+  Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
@@ -25,6 +27,7 @@ interface DashboardHeaderProps {
     name: string;
     isPublished: boolean;
     qrScans: number;
+    showLinks?: boolean;
   };
   totalClicks: number;
   totalLinks: number;
