@@ -125,6 +125,19 @@ export function DashboardHeader({
                 </>
               )}
             </button>
+
+            {/* Layout Mode Badge */}
+            {profile.showLinks === false ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border bg-purple-500/10 text-purple-300 border-purple-500/20">
+                <UserCheck className="w-3 h-3 text-purple-400" />
+                <span>Social Card Only</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border bg-white/[0.04] text-neutral-400 border-white/10">
+                <Layers className="w-3 h-3 text-sky-400" />
+                <span>Standard Layout</span>
+              </span>
+            )}
           </div>
 
           <p className="text-xs text-neutral-400 mt-1 font-mono break-all">
