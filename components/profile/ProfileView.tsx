@@ -8,13 +8,15 @@ import {
   Share2,
   Sparkles,
   Link2,
+  Layers,
+  User,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { SocialIcon } from "./SocialIcon";
 import { LinkIcon } from "./LinkIcon";
 import { ShareQrModal } from "@/components/share/ShareQrModal";
 import { SocialPlatform } from "@prisma/client";
-import { cn } from "@/lib/utils";
+import { cn, formatUrlDisplay } from "@/lib/utils";
 
 export interface ProfileViewLink {
   id: string;
@@ -46,6 +48,7 @@ export interface ProfileViewProps {
   links: ProfileViewLink[];
   socials: ProfileViewSocial[];
   isPreview?: boolean;
+  initialViewMode?: "all" | "social";
 }
 
 export function ProfileView({
@@ -53,11 +56,31 @@ export function ProfileView({
   links,
   socials,
   isPreview = false,
+  initialViewMode,
 }: ProfileViewProps) {
   const [isShareOpen, setIsShareOpen] = React.useState(false);
 
+  // Determine initial view mode:
+  // If explicitly requested via initialViewMode (e.g. ?view=social query param) or if showLinks is false
+  const defaultMode =
+    initialViewMode || (profile.showLinks === false ? "social" : "all");
+  const [viewMode, setViewMode] = React.useState<"all" | "social">(defaultMode);
+
+  // Sync state if profile prop changes (e.g. live dashboard preview switch)
+  React.useEffect(() => {
+    if (profile.showLinks === false) {
+      setViewMode("social");
+    } else if (initialViewMode) {
+      setViewMode(initialViewMode);
+    }
+  }, [profile.showLinks, initialViewMode]);
+
   const visibleLinks = links.filter((l) => l.isVisible !== false);
   const currentYear = new Date().getFullYear();
+
+  // Whether user can toggle views (only when profile actually has links AND showLinks is not locked off by owner)
+  const canToggleView = profile.showLinks !== false && visibleLinks.length > 0;
+  const isSocialOnly = viewMode === "social" || profile.showLinks === false;
 
   return (
     <div className="w-full max-w-[480px] mx-auto px-4 py-8 sm:py-12 flex flex-col items-center min-h-screen">
@@ -67,13 +90,13 @@ export function ProfileView({
           type="button"
           onClick={() => setIsShareOpen(true)}
           aria-label="Share this profile"
-          className="p-2.5 rounded-full bg-[#141414] border border-white/10 hover:border-white/25 hover:bg-[#1a1a1a] text-neutral-300 hover:text-white transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+          className="p-2.5 rounded-full bg-[#141414] border border-white/10 hover:border-white/25 hover:bg-[#1a1a1a] text-neutral-300 hover:text-white transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 cursor-pointer"
         >
           <Share2 className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Profile Header */}
+      {/* Profile Header (Photo, Full Name, Title, Location, Description / Bio) */}
       <div className="flex flex-col items-center text-center w-full">
         <Avatar
           src={profile.avatarUrl}
@@ -107,7 +130,7 @@ export function ProfileView({
         )}
       </div>
 
-      {/* Social Icons Row */}
+      {/* Social Icons Round Row */}
       {socials.length > 0 && (
         <div className="flex flex-wrap items-center justify-center gap-2.5 my-6">
           {socials.map((social) => (
@@ -125,8 +148,85 @@ export function ProfileView({
         </div>
       )}
 
-      {/* Links List - Omitted when showLinks is false (Social Card Mode) */}
-      {profile.showLinks !== false ? (
+      {/* Page View Mode Toggle (Shown when profile has link cards to offer the choice) */}
+      {canToggleView && (
+        <div className="inline-flex items-center p-1 rounded-full bg-[#141414] border border-white/10 mb-6 text-xs shadow-inner select-none">
+          <button
+            type="button"
+            onClick={() => setViewMode("all")}
+            className={cn(
+              "px-3.5 py-1.5 rounded-full font-medium transition-all flex items-center gap-1.5 cursor-pointer",
+              viewMode === "all"
+                ? "bg-white text-black shadow-sm"
+                : "text-neutral-400 hover:text-white"
+            )}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>All Links & Works</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("social")}
+            className={cn(
+              "px-3.5 py-1.5 rounded-full font-medium transition-all flex items-center gap-1.5 cursor-pointer",
+              viewMode === "social"
+                ? "bg-white text-black shadow-sm"
+                : "text-neutral-400 hover:text-white"
+            )}
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>Social Card Only</span>
+          </button>
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      {isSocialOnly ? (
+        /* SOCIAL CARD ONLY VIEW: Pic, Full Name, Description & Social Media Only (No Works/Links) */
+        <div className="w-full flex-1 flex flex-col items-center">
+          {socials.length > 0 ? (
+            <div className="w-full max-w-sm space-y-2.5 mt-2">
+              <div className="text-center pb-2">
+                <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">
+                  Connect & Social Channels
+                </span>
+              </div>
+              {socials.map((social) => (
+                <a
+                  key={social.id}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="card-hover group flex items-center justify-between p-3.5 rounded-2xl bg-[#141414] border border-white/10 hover:border-white/25 hover:bg-[#181818] transition-all"
+                >
+                  <div className="flex items-center gap-3 min-w-0 pr-2">
+                    <div className="w-9 h-9 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-neutral-300 group-hover:text-sky-300 group-hover:border-sky-400/30 transition-colors shrink-0">
+                      <SocialIcon platform={social.platform} className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 text-left">
+                      <p className="text-sm font-semibold text-white group-hover:text-sky-300 transition-colors capitalize">
+                        {social.platform.toLowerCase()}
+                      </p>
+                      <p className="text-xs text-neutral-400 truncate max-w-[210px] sm:max-w-[250px]">
+                        {formatUrlDisplay(social.url)}
+                      </p>
+                    </div>
+                  </div>
+                  <ExternalLink className="link-arrow w-4 h-4 text-neutral-500 group-hover:text-white transition-colors shrink-0" />
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="w-full text-center py-8 px-4 rounded-2xl bg-[#141414]/40 border border-white/5 mt-2">
+              <User className="w-8 h-8 text-neutral-600 mx-auto mb-2" />
+              <p className="text-sm text-neutral-400">
+                No social links added yet.
+              </p>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* STANDARD VIEW: Shows Full Portfolio / Job Link Cards */
         <div className="w-full space-y-3.5 mt-2 flex-1">
           {visibleLinks.length === 0 ? (
             <div className="text-center py-10 px-4 rounded-2xl bg-[#141414]/50 border border-white/5">
@@ -135,9 +235,7 @@ export function ProfileView({
             </div>
           ) : (
             visibleLinks.map((link) => {
-              const href = isPreview
-                ? link.url
-                : `/api/click/${link.id}`;
+              const href = isPreview ? link.url : `/api/click/${link.id}`;
 
               return (
                 <a
@@ -184,8 +282,6 @@ export function ProfileView({
             })
           )}
         </div>
-      ) : (
-        <div className="w-full flex-1" />
       )}
 
       {/* Footer */}

@@ -29,6 +29,7 @@ import {
   Sparkles,
   MousePointerClick,
   Link2,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
@@ -233,11 +234,13 @@ function SortableLinkItem({
 interface LinksEditorProps {
   initialLinks: DashboardLinkItem[];
   onLinksChanged: (links: DashboardLinkItem[]) => void;
+  showLinks?: boolean;
 }
 
 export function LinksEditor({
   initialLinks,
   onLinksChanged,
+  showLinks,
 }: LinksEditorProps) {
   const [links, setLinks] = React.useState<DashboardLinkItem[]>(initialLinks);
   const [isAddOpen, setIsAddOpen] = React.useState(false);

@@ -22,7 +22,7 @@ export const profileSchema = z.object({
       message: "This username is reserved and cannot be chosen",
     }),
   avatarUrl: z.string().optional().nullable(),
-  showLinks: z.boolean().default(true),
+  showLinks: z.boolean(),
 });
 
 export type ProfileInput = z.infer<typeof profileSchema>;

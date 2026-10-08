@@ -12,6 +12,10 @@ import {
   Loader2,
   Save,
   ImageIcon,
+  Layers,
+  UserCheck,
+  Check,
+  SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { profileSchema, type ProfileInput } from "@/lib/validations/profile";
@@ -20,6 +24,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Avatar } from "@/components/ui/Avatar";
+import { cn } from "@/lib/utils";
 
 interface ProfileEditorProps {
   initialProfile: {
@@ -335,41 +340,118 @@ export function ProfileEditor({
           )}
         </div>
 
-        {/* Page Display Layout Option: Show/Hide Link Cards */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-white">
-                Social Profile Card Only Mode
-              </p>
-              <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed">
-                When enabled, your public page displays ONLY your photo, full name, description bio, and social media icons (hiding all job links, works, and cards).
-              </p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer shrink-0">
-              <input
-                type="checkbox"
-                checked={!watch("showLinks")}
-                onChange={(e) => {
-                  const newShowLinks = !e.target.checked;
-                  setValue("showLinks", newShowLinks, { shouldDirty: true });
-                  onProfileUpdated({
-                    name: watch("name"),
-                    title: watch("title"),
-                    bio: watch("bio"),
-                    location: watch("location"),
-                    username: watch("username"),
-                    avatarUrl,
-                    showLinks: newShowLinks,
-                  });
-                }}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+        {/* Page Display Layout Option: Standard vs Social Card Only */}
+        <div className="space-y-3 pt-1">
+          <div>
+            <label className="text-sm font-semibold text-white flex items-center gap-2">
+              <SlidersHorizontal className="w-4 h-4 text-sky-400" />
+              <span>Page View Layout Mode</span>
             </label>
+            <p className="text-xs text-neutral-400 mt-1">
+              Choose how your public page is presented to visitors. You can toggle between full portfolio works or a focused social profile card.
+            </p>
           </div>
-          <div className="text-[11px] text-sky-400 font-medium pt-1">
-            Current layout: {!watch("showLinks") ? "Social Card Mode (Picture, name, bio & social media only)" : "Standard Mode (Full profile with links & works)"}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Option 1: Standard Full Profile */}
+            <button
+              type="button"
+              onClick={() => {
+                setValue("showLinks", true, { shouldDirty: true });
+                onProfileUpdated({
+                  name: watch("name"),
+                  title: watch("title"),
+                  bio: watch("bio"),
+                  location: watch("location"),
+                  username: watch("username"),
+                  avatarUrl,
+                  showLinks: true,
+                });
+              }}
+              className={cn(
+                "p-4 rounded-2xl border text-left transition-all relative flex flex-col justify-between cursor-pointer",
+                watch("showLinks")
+                  ? "bg-sky-500/[0.08] border-sky-400 ring-1 ring-sky-400/30"
+                  : "bg-[#141414] border-white/10 hover:border-white/20"
+              )}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-sky-400">
+                    <Layers className="w-4 h-4" />
+                  </div>
+                  <div
+                    className={cn(
+                      "w-4 h-4 rounded-full border flex items-center justify-center transition-colors",
+                      watch("showLinks")
+                        ? "border-sky-400 bg-sky-400 text-black"
+                        : "border-neutral-600"
+                    )}
+                  >
+                    {watch("showLinks") && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                  </div>
+                </div>
+                <h4 className="text-sm font-semibold text-white">
+                  Standard Layout
+                </h4>
+                <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                  Full page with photo, name, bio, social media, plus all your job & work link cards.
+                </p>
+              </div>
+              <span className="mt-3 inline-block text-[11px] font-medium text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-md border border-sky-500/20 w-fit">
+                Bio + Socials + Work Links
+              </span>
+            </button>
+
+            {/* Option 2: Social Profile Card Only */}
+            <button
+              type="button"
+              onClick={() => {
+                setValue("showLinks", false, { shouldDirty: true });
+                onProfileUpdated({
+                  name: watch("name"),
+                  title: watch("title"),
+                  bio: watch("bio"),
+                  location: watch("location"),
+                  username: watch("username"),
+                  avatarUrl,
+                  showLinks: false,
+                });
+              }}
+              className={cn(
+                "p-4 rounded-2xl border text-left transition-all relative flex flex-col justify-between cursor-pointer",
+                !watch("showLinks")
+                  ? "bg-sky-500/[0.08] border-sky-400 ring-1 ring-sky-400/30"
+                  : "bg-[#141414] border-white/10 hover:border-white/20"
+              )}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-sky-400">
+                    <UserCheck className="w-4 h-4" />
+                  </div>
+                  <div
+                    className={cn(
+                      "w-4 h-4 rounded-full border flex items-center justify-center transition-colors",
+                      !watch("showLinks")
+                        ? "border-sky-400 bg-sky-400 text-black"
+                        : "border-neutral-600"
+                    )}
+                  >
+                    {!watch("showLinks") && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                  </div>
+                </div>
+                <h4 className="text-sm font-semibold text-white">
+                  Social Card Only
+                </h4>
+                <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                  Only photo, full name, description bio, and social media links. All work & job links are hidden.
+                </p>
+              </div>
+              <span className="mt-3 inline-block text-[11px] font-medium text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20 w-fit">
+                Photo + Bio + Socials Only
+              </span>
+            </button>
           </div>
         </div>
 

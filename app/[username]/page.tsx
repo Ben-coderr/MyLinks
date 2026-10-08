@@ -129,6 +129,15 @@ export default async function PublicProfilePage({
     }
   }
 
+  // Page View Mode override via query parameter (?view=social or ?view=all or ?mode=social)
+  const viewQuery = resolvedSearchParams?.view || resolvedSearchParams?.mode;
+  const initialViewMode =
+    viewQuery === "social" || viewQuery === "card"
+      ? "social"
+      : viewQuery === "all" || viewQuery === "links"
+      ? "all"
+      : undefined;
+
   return (
     <main className="min-h-screen bg-[#0A0A0A] text-white">
       <ProfileView
@@ -144,6 +153,7 @@ export default async function PublicProfilePage({
         links={profile.links}
         socials={profile.socials}
         isPreview={false}
+        initialViewMode={initialViewMode}
       />
     </main>
   );

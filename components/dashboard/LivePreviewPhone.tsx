@@ -15,6 +15,7 @@ interface LivePreviewPhoneProps {
     bio?: string | null;
     location?: string | null;
     avatarUrl?: string | null;
+    showLinks?: boolean;
   };
   links: DashboardLinkItem[];
   socials: DashboardSocialItem[];

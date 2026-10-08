@@ -26,6 +26,7 @@ interface DashboardClientProps {
     location?: string | null;
     avatarUrl?: string | null;
     isPublished: boolean;
+    showLinks?: boolean;
     qrScans: number;
   };
   initialLinks: DashboardLinkItem[];
@@ -56,6 +57,7 @@ export function DashboardClient({
       location: updated.location || null,
       username: updated.username,
       avatarUrl: updated.avatarUrl || null,
+      showLinks: updated.showLinks !== undefined ? updated.showLinks : prev.showLinks,
     }));
   };
 
