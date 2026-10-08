@@ -29,14 +29,18 @@ export function QrCard({
   const svgRef = React.useRef<HTMLDivElement>(null);
 
   const baseUrl = getBaseUrl();
-  const profileUrl = `${baseUrl}/${username}`;
-  const qrTargetUrl = `${profileUrl}?ref=qr`;
+  const [profileUrl, setProfileUrl] = React.useState(`${baseUrl}/${username}`);
 
   React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      setProfileUrl(`${window.location.origin}/${username}`);
+    }
     if (typeof navigator !== "undefined" && "share" in navigator) {
       setCanShare(true);
     }
-  }, []);
+  }, [username]);
+
+  const qrTargetUrl = `${profileUrl}?ref=qr`;
 
   const handleCopy = async () => {
     try {
@@ -167,7 +171,10 @@ export function QrCard({
         {/* Info below QR */}
         <div className="mt-4 text-center">
           <h3 className="font-semibold text-white text-base">{name}</h3>
-          <p className="text-sm text-sky-400 font-mono mt-0.5 break-all">
+          <p
+            className="text-sm text-sky-400 font-mono mt-0.5 break-all"
+            suppressHydrationWarning
+          >
             {formatUrlDisplay(profileUrl)}
           </p>
         </div>

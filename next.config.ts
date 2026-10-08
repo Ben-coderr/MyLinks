@@ -48,6 +48,12 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "6mb",
+      allowedOrigins: ["my-links-liart.vercel.app", "*.vercel.app"],
+    },
+  },
 };
 
 export default nextConfig;

@@ -14,8 +14,25 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  // 1. Resolve user ID reliably
+  let userId = session.user.id;
+  if (!userId && session.user.email) {
+    const dbUser = await prisma.user.findUnique({
+      where: { email: session.user.email.toLowerCase() },
+      select: { id: true, role: true },
+    });
+    if (dbUser) {
+      userId = dbUser.id;
+      if (!session.user.role) session.user.role = dbUser.role;
+    }
+  }
+
+  if (!userId) {
+    redirect("/login");
+  }
+
   let profile = await prisma.profile.findUnique({
-    where: { userId: session.user.id },
+    where: { userId },
     include: {
       links: {
         orderBy: { order: "asc" },
@@ -28,7 +45,7 @@ export default async function DashboardPage() {
 
   // Fallback: If profile doesn't exist, generate one based on email prefix
   if (!profile) {
-    const rawUsername = session.user.email
+    const rawUsername = (session.user.email || "user")
       .split("@")[0]
       .toLowerCase()
       .replace(/[^a-z0-9_-]/g, "");
@@ -44,7 +61,7 @@ export default async function DashboardPage() {
 
     profile = await prisma.profile.create({
       data: {
-        userId: session.user.id,
+        userId,
         username: chosenUsername,
         name: rawUsername ? (rawUsername.charAt(0).toUpperCase() + rawUsername.slice(1)) : "User",
         title: "Creator",
@@ -114,9 +131,9 @@ export default async function DashboardPage() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 sm:py-8">
         <DashboardClient
           initialUser={{
-            id: session.user.id,
-            email: session.user.email,
-            role: session.user.role,
+            id: userId,
+            email: session.user.email || "",
+            role: session.user.role || "USER",
           }}
           initialProfile={profile}
           initialLinks={profile.links}

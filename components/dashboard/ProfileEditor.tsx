@@ -190,17 +190,23 @@ export function ProfileEditor({
 
     setIsSaving(true);
     try {
-      const payload = { ...data, avatarUrl };
+      // If avatarUrl is a large base64 data URI, it was already saved directly to the database
+      // via /api/upload/avatar. Omit huge base64 strings from Server Action wire payload.
+      const payload: ProfileInput = {
+        ...data,
+        avatarUrl: avatarUrl?.startsWith("data:") ? undefined : avatarUrl,
+      };
       const res = await updateProfile(payload);
 
       if (res.error) {
         toast.error(res.error);
       } else {
         toast.success("Profile updated successfully!");
-        onProfileUpdated(payload);
+        onProfileUpdated({ ...payload, avatarUrl: avatarUrl || null });
       }
-    } catch {
-      toast.error("Failed to update profile");
+    } catch (err) {
+      console.error("Profile save error:", err);
+      toast.error((err as Error)?.message || "Failed to update profile");
     } finally {
       setIsSaving(false);
     }

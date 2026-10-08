@@ -7,13 +7,33 @@ import { prisma } from "@/lib/prisma";
 import fs from "fs/promises";
 import path from "path";
 
+// Helper to resolve user ID safely with email fallback
+async function resolveUserId(): Promise<string> {
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Unauthorized");
+  }
+
+  let userId = session.user.id;
+  if (!userId && session.user.email) {
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email.toLowerCase() },
+      select: { id: true },
+    });
+    if (user) userId = user.id;
+  }
+
+  if (!userId) {
+    throw new Error("User identification failed. Please log in again.");
+  }
+
+  return userId;
+}
+
 // 1. CHANGE EMAIL
 export async function changeEmail(newEmail: string) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return { error: "Unauthorized" };
-    }
+    const userId = await resolveUserId();
 
     const emailSchema = z
       .string()
@@ -33,19 +53,19 @@ export async function changeEmail(newEmail: string) {
       where: { email: cleanEmail },
       select: { id: true },
     });
-    if (existing && existing.id !== session.user.id) {
+    if (existing && existing.id !== userId) {
       return { error: "This email address is already in use by another account" };
     }
 
     await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: userId },
       data: { email: cleanEmail },
     });
 
     return { success: true, email: cleanEmail };
   } catch (error) {
     console.error("Change email error:", error);
-    return { error: "Failed to update email address" };
+    return { error: (error as Error).message || "Failed to update email address" };
   }
 }
 
@@ -55,17 +75,14 @@ export async function changePassword(
   newPass: string
 ) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return { error: "Unauthorized" };
-    }
+    const userId = await resolveUserId();
 
     if (!newPass || newPass.length < 8) {
       return { error: "New password must be at least 8 characters" };
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
       select: { id: true, passwordHash: true },
     });
 
@@ -80,27 +97,24 @@ export async function changePassword(
 
     const newHash = await bcrypt.hash(newPass, 10);
     await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: userId },
       data: { passwordHash: newHash },
     });
 
     return { success: true };
   } catch (error) {
     console.error("Change password error:", error);
-    return { error: "Failed to update password" };
+    return { error: (error as Error).message || "Failed to update password" };
   }
 }
 
 // 3. DELETE ACCOUNT
 export async function deleteAccount(confirmationUsername: string) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return { error: "Unauthorized" };
-    }
+    const userId = await resolveUserId();
 
     const profile = await prisma.profile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId },
       select: { username: true, avatarUrl: true },
     });
 
@@ -136,12 +150,12 @@ export async function deleteAccount(confirmationUsername: string) {
 
     // Cascade delete: Deleting user removes User, Profile, Link, Social automatically
     await prisma.user.delete({
-      where: { id: session.user.id },
+      where: { id: userId },
     });
 
     return { success: true };
   } catch (error) {
     console.error("Delete account error:", error);
-    return { error: "Failed to delete account" };
+    return { error: (error as Error).message || "Failed to delete account" };
   }
 }

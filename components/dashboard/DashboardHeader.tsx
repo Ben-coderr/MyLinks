@@ -46,13 +46,21 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const [copied, setCopied] = React.useState(false);
   const [isTogglingPublish, setIsTogglingPublish] = React.useState(false);
-
   const baseUrl = getBaseUrl();
-  const profileUrl = `${baseUrl}/${profile.username}`;
+  const [profileUrl, setProfileUrl] = React.useState(`${baseUrl}/${profile.username}`);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      setProfileUrl(`${window.location.origin}/${profile.username}`);
+    }
+  }, [profile.username]);
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(profileUrl);
+      const copyUrl = typeof window !== "undefined"
+        ? `${window.location.origin}/${profile.username}`
+        : profileUrl;
+      await navigator.clipboard.writeText(copyUrl);
       setCopied(true);
       toast.success("Profile link copied to clipboard!");
       setTimeout(() => setCopied(false), 2000);
@@ -140,7 +148,10 @@ export function DashboardHeader({
             )}
           </div>
 
-          <p className="text-xs text-neutral-400 mt-1 font-mono break-all">
+          <p
+            className="text-xs text-neutral-400 mt-1 font-mono break-all"
+            suppressHydrationWarning
+          >
             {formatUrlDisplay(profileUrl)}
           </p>
         </div>

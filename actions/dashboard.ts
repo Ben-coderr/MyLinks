@@ -22,14 +22,58 @@ async function getAuthorizedProfile(targetUserId?: string) {
     throw new Error("Unauthorized");
   }
 
+  // 1. Resolve effective user ID reliably
+  let userId = session.user.id;
+  if (!userId && session.user.email) {
+    const dbUser = await prisma.user.findUnique({
+      where: { email: session.user.email.toLowerCase() },
+      select: { id: true, role: true },
+    });
+    if (dbUser) {
+      userId = dbUser.id;
+      if (!session.user.role) session.user.role = dbUser.role;
+    }
+  }
+
+  if (!userId) {
+    throw new Error("User identification failed. Please log in again.");
+  }
+
   const effectiveUserId =
     session.user.role === "ADMIN" && targetUserId
       ? targetUserId
-      : session.user.id;
+      : userId;
 
-  const profile = await prisma.profile.findUnique({
+  let profile = await prisma.profile.findUnique({
     where: { userId: effectiveUserId },
   });
+
+  // 2. If profile is missing, automatically create it
+  if (!profile && session.user.email) {
+    const rawUsername = session.user.email
+      .split("@")[0]
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]/g, "");
+
+    let chosenUsername = rawUsername || "user";
+    const existing = await prisma.profile.findUnique({
+      where: { username: chosenUsername },
+      select: { id: true },
+    });
+    if (existing) {
+      chosenUsername = `${chosenUsername}-${Math.random().toString(36).substring(2, 6)}`;
+    }
+
+    profile = await prisma.profile.create({
+      data: {
+        userId: effectiveUserId,
+        username: chosenUsername,
+        name: rawUsername ? (rawUsername.charAt(0).toUpperCase() + rawUsername.slice(1)) : "User",
+        title: "Creator",
+        isPublished: true,
+      },
+    });
+  }
 
   if (!profile) {
     throw new Error("Profile not found");

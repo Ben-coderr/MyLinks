@@ -21,6 +21,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    let userId = session.user.id;
+    if (!userId && session.user.email) {
+      const dbUser = await prisma.user.findUnique({
+        where: { email: session.user.email.toLowerCase() },
+        select: { id: true },
+      });
+      if (dbUser) userId = dbUser.id;
+    }
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User identification failed. Please log in again." },
+        { status: 401 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
@@ -48,11 +64,11 @@ export async function POST(request: NextRequest) {
     }
 
     const ext = EXT_MAP[file.type] || "jpg";
-    const fileName = `${session.user.id}-${Date.now()}.${ext}`;
+    const fileName = `${userId}-${Date.now()}.${ext}`;
 
     // Get current avatar for cleanup if needed
     const currentProfile = await prisma.profile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId },
       select: { avatarUrl: true },
     });
 
@@ -76,7 +92,12 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        return NextResponse.json({ url: blob.url });
+        const finalUrl = blob.url;
+        await prisma.profile.update({
+          where: { userId },
+          data: { avatarUrl: finalUrl },
+        });
+        return NextResponse.json({ url: finalUrl });
       } catch (blobError) {
         console.warn("Vercel Blob upload failed, falling back to data URL:", blobError);
       }
@@ -106,6 +127,10 @@ export async function POST(request: NextRequest) {
         await fs.writeFile(filePath, buffer);
 
         const publicUrl = `/uploads/avatars/${fileName}`;
+        await prisma.profile.update({
+          where: { userId },
+          data: { avatarUrl: publicUrl },
+        });
         return NextResponse.json({ url: publicUrl });
       } catch (localError) {
         console.warn("Local disk write failed, falling back to data URL:", localError);
@@ -118,6 +143,11 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
     const base64Data = buffer.toString("base64");
     const dataUrl = `data:${file.type};base64,${base64Data}`;
+
+    await prisma.profile.update({
+      where: { userId },
+      data: { avatarUrl: dataUrl },
+    });
 
     return NextResponse.json({ url: dataUrl });
   } catch (error) {
@@ -136,8 +166,21 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    let userId = session.user.id;
+    if (!userId && session.user.email) {
+      const dbUser = await prisma.user.findUnique({
+        where: { email: session.user.email.toLowerCase() },
+        select: { id: true },
+      });
+      if (dbUser) userId = dbUser.id;
+    }
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const currentProfile = await prisma.profile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId },
       select: { avatarUrl: true },
     });
 
@@ -173,7 +216,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await prisma.profile.update({
-      where: { userId: session.user.id },
+      where: { userId },
       data: { avatarUrl: null },
     });
 
