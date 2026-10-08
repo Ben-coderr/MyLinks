@@ -138,6 +138,15 @@ export function ProfileEditor({
       } else {
         setAvatarUrl(data.url);
         setValue("avatarUrl", data.url, { shouldDirty: true });
+        onProfileUpdated({
+          name: watch("name"),
+          title: watch("title"),
+          bio: watch("bio"),
+          location: watch("location"),
+          username: watch("username"),
+          avatarUrl: data.url,
+          showLinks: watch("showLinks"),
+        });
         toast.success("Avatar uploaded successfully!");
       }
     } catch {
@@ -155,6 +164,15 @@ export function ProfileEditor({
       if (res.ok) {
         setAvatarUrl(null);
         setValue("avatarUrl", null, { shouldDirty: true });
+        onProfileUpdated({
+          name: watch("name"),
+          title: watch("title"),
+          bio: watch("bio"),
+          location: watch("location"),
+          username: watch("username"),
+          avatarUrl: null,
+          showLinks: watch("showLinks"),
+        });
         toast.success("Avatar removed");
       }
     } catch {

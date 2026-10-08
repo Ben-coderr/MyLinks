@@ -54,6 +54,7 @@ export function Avatar({
           className="w-full h-full object-cover"
           onError={() => setImageError(true)}
           priority={size === "xl"}
+          unoptimized={Boolean(src?.startsWith("data:"))}
         />
       ) : (
         <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center text-white font-semibold tracking-wider border border-white/10">

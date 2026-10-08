@@ -8,12 +8,14 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+  preload: false,
 });
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-heading",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -36,7 +38,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${plusJakartaSans.variable} dark h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#0A0A0A] text-white">
+      <body className={`${inter.className} min-h-full flex flex-col bg-[#0A0A0A] text-white`}>
         <SessionProvider>
           {children}
         </SessionProvider>

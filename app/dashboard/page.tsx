@@ -28,16 +28,25 @@ export default async function DashboardPage() {
 
   // Fallback: If profile doesn't exist, generate one based on email prefix
   if (!profile) {
-    const defaultUsername = session.user.email
+    const rawUsername = session.user.email
       .split("@")[0]
       .toLowerCase()
       .replace(/[^a-z0-9_-]/g, "");
 
+    let chosenUsername = rawUsername || "user";
+    const existing = await prisma.profile.findUnique({
+      where: { username: chosenUsername },
+      select: { id: true },
+    });
+    if (existing) {
+      chosenUsername = `${chosenUsername}-${Math.random().toString(36).substring(2, 6)}`;
+    }
+
     profile = await prisma.profile.create({
       data: {
         userId: session.user.id,
-        username: defaultUsername,
-        name: defaultUsername.charAt(0).toUpperCase() + defaultUsername.slice(1),
+        username: chosenUsername,
+        name: rawUsername ? (rawUsername.charAt(0).toUpperCase() + rawUsername.slice(1)) : "User",
         title: "Creator",
         isPublished: true,
       },
